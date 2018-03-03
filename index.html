@@ -128,26 +128,26 @@
 			<form name="itemForm" novalidate>
 				<div class="modal-content" ng-if="vm.dialogModel">
 					<div class="modal-header">
-						<button type="button" class="close" data-dismiss="modal" aria-label="Close" ng-click="vm.cancelItem()"><span aria-hidden="true">&times;</span></button>
+						<button type="button" class="close" aria-label="Close" ng-click="vm.cancelItem()"><span aria-hidden="true">&times;</span></button>
 						<h4 class="modal-title">{{ vm.dialogModel.action }} Item</h4>
 					</div>
 					<div class="modal-body">
 						<div class="row">
 							<div class="col-md-3">
+								<div class="row" ng-if="vm.dialogModel.images">
+									<div class="col-md-3 text-right">
+										<a href ng-click="vm.rotateImage(-1)"><span class="glyphicon glyphicon-circle-arrow-left"></span></a>
+									</div>
+									<div class="col-md-6 text-center">
+										{{ vm.dialogModel.imageIndex + 1 }} of {{ vm.dialogModel.images.length }}
+									</div>
+									<div class="col-md-3">
+										<a href ng-click="vm.rotateImage(1)"><span class="glyphicon glyphicon-circle-arrow-right"></span></a>
+									</div>
+								</div>
 								<div class="row">
 									<div class="col-md-12 text-center">
 										<img ng-src="{{ vm.dialogModel.image || 'placeholder.png' }}" width="135"></img>
-									</div>
-								</div>
-								<div class="row" ng-if="vm.dialogModel.images">
-									<div class="col-md-1 col-md-offset-3">
-										<a href ng-click="vm.dialogModel.imageIndex = vm.dialogModel.imageIndex == 0 ? vm.dialogModel.images.length - 1 : vm.dialogModel.imageIndex - 1"><span class="glyphicon glyphicon-circle-arrow-left"></span></a>
-									</div>
-									<div class="col-md-4 text-center">
-										{{ vm.dialogModel.imageIndex + 1 }} of {{ vm.dialogModel.images.length }}
-									</div>
-									<div class="col-md-1 text-right">
-										<a href ng-click="vm.dialogModel.imageIndex = vm.dialogModel.imageIndex >= vm.dialogModel.images.length - 1 ? 0 : vm.dialogModel.imageIndex + 1"><span class="glyphicon glyphicon-circle-arrow-right"></span></a>
 									</div>
 								</div>
 							</div>
@@ -187,10 +187,11 @@
 											<textarea id="item_comments" class="form-control" ng-model="vm.dialogModel.comments"></textarea>
 										</div>
 									</div>
-									<div class="form-group" ng-if="vm.dialogModel.images">
+									<div class="form-group" ng-if="vm.dialogModel.images" ng-class="{ 'has-error': vm.dialogModel.submitted && itemForm.item_wishlist.$invalid }">
 										<label for="item_wishlist" class="control-label col-md-2">Wish List:</label>
 										<div class="col-md-10">
-											<select id="item_wishlist" class="form-control" ng-model="vm.dialogModel.wishlist" ng-options="list.name for list in vm.lists"></select> 
+											<select id="item_wishlist" name="item_wishlist" class="form-control" required ng-model="vm.dialogModel.wishlist" ng-options="list.name for list in vm.lists"></select> 
+											<p ng-show="vm.dialogModel.submitted && itemForm.item_wishlist.$error.required" class="help-block">Wishlist is required</p>
 										</div>
 									</div>
 								</div>
@@ -198,7 +199,7 @@
 						</div>
 					</div>
 					<div class="modal-footer">
-						<button type="button" class="btn btn-default" data-dismiss="modal" ng-click="vm.cancelItem()">Cancel</button>
+						<button type="button" class="btn btn-default" ng-click="vm.cancelItem()">Cancel</button>
 						<button type="button" class="btn btn-primary" ng-click="vm.dialogModel.submitted = true; itemForm.$valid && vm.commitItem()">Save</button>
 					</div>
 				</div>

@@ -3,6 +3,14 @@
 	"use strict";
 	
 	angular.module("wishlist", ["ui.sortable"]);
+
+	angular.module("wishlist").config(function($locationProvider)
+	{
+		$locationProvider.html5Mode({
+			enabled: true,
+			requireBase: false
+		});
+	});
 	
 	angular.module("wishlist").controller("WishlistController", WishlistController);
 	
@@ -28,6 +36,7 @@
 		vm.moveItem = moveItem;
 		vm.newItem = newItem;
 		vm.newList = newList;
+		vm.rotateImage = rotateImage;
 		vm.saveLists = saveLists;
 		vm.selectList = selectList;
 		vm.undeleteItem = undeleteItem;
@@ -36,6 +45,7 @@
 		
 		function cancelItem()
 		{
+			$("#itemModal").modal("hide");
 			vm.dialogModel = null;
 		}
 		
@@ -107,13 +117,26 @@
 		function init()
 		{
 			loadLists();
+
 			$("#itemModal").modal({
 				keyboard: false,
 				show: false,
 				backdrop: "static"
 			});
+
 			var addParams = $location.search();
-			console.log(angular.toJson(addParams));
+			if (addParams && addParams.url)
+			{
+				var model = {
+					name: addParams.name,
+					url: addParams.url,
+					images: angular.fromJson(addParams.images),
+					imageIndex: 0,
+					price: angular.fromJson(addParams.prices)[0]
+				};
+				model.image = model.images[0];
+				vm.newItem(model);
+			}
 		}
 		
 		function loadLists()
@@ -139,12 +162,10 @@
 			vm.saveLists();
 		}
 		
-		function newItem()
+		function newItem(model)
 		{
-			vm.dialogModel = {
-				action: "Add", 
-				imageIndex: 0
-			};
+			vm.dialogModel = model || {};
+			vm.dialogModel.action = "Add";
 			$("#itemModal").modal("show");
 		}
 		
@@ -177,6 +198,20 @@
 					}
 				}
 			}
+		}
+		
+		function rotateImage(dir)
+		{
+			vm.dialogModel.imageIndex += dir;
+			if (vm.dialogModel.imageIndex < 0)
+			{
+				vm.dialogModel.imageIndex = vm.dialogModel.images.length - 1;
+			}
+			if (vm.dialogModel.imageIndex >= vm.dialogModel.images.length)
+			{
+				vm.dialogModel.imageIndex = 0;
+			}
+			vm.dialogModel.image = vm.dialogModel.images[vm.dialogModel.imageIndex];
 		}
 		
 		function saveLists()
