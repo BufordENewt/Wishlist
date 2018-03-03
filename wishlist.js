@@ -51,19 +51,32 @@
 		
 		function commitItem()
 		{
-			var item = vm.dialogModel.editItem || {};
+			var item = vm.dialogModel.editItem;
+			var add = vm.dialogModel.action == "Add";
+			if (add)
+			{
+				if (vm.dialogModel.wishlist)
+				{
+					selectList(vm.dialogModel.wishlist);
+				}
+				item = vm.currentList.items.find(x => x.name == vm.dialogModel.name);
+				if (!item || !confirm("An item named \"" + vm.dialogModel.name + "\" already exists in this wish list. Would you like to replace it?"))
+				{
+					item = {};
+				}
+				else
+				{
+					add = false;
+				}
+			}
 			item.name = vm.dialogModel.name;
 			item.url = vm.dialogModel.url;
 			item.price = vm.dialogModel.price;
 			item.image = vm.dialogModel.image;
 			item.website = new URL(vm.dialogModel.url, $window.location).hostname;
 			item.comments = vm.dialogModel.comments;
-			if (vm.dialogModel.action == "Add")
+			if (add)
 			{
-				if (vm.dialogModel.wishlist)
-				{
-					selectList(vm.dialogModel.wishlist);
-				}
 				vm.currentList.items.unshift(item);
 			}
 			saveLists();
@@ -135,6 +148,8 @@
 					price: angular.fromJson(addParams.prices)[0]
 				};
 				model.image = model.images[0];
+				$location.search({});
+				$location.replace();
 				vm.newItem(model);
 			}
 		}
