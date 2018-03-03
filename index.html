@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="wishlist" ng-controller="WishlistController as vm">
+<head>
+	<title>My Wish Lists</title>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+	<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+	<script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+	<script src="https://rawgithub.com/angular-ui/ui-sortable/master/src/sortable.js"></script>
+	<script src="wishlist.js"></script>
+	<style>
+#itemPanel 
+{
+	padding-left: 0;
+	padding-right: 0;
+}
+
+.itemButtonCol
+{
+	padding-left: 5px;
+	padding-right: 5px;
+}
+
+.itemName, .itemPrice
+{
+	margin-top: 5px;
+	margin-bottom: 5px;
+}
+
+.vertical-align
+{
+    display: flex;
+    align-items: center;
+}
+
+.dragHandle
+{
+	cursor: grab;
+	color: #bbb;
+}
+	</style>
+</head>
+
+<body>
+	<div class="container">
+		<div class="row">
+			<div class="col-md-12">
+				<h1 class="text-center">My Wish Lists</h1>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-3 panel panel-default">
+				<div class="panel-body">
+					<div class="form-group">
+						<ul class="nav nav-pills nav-stacked">
+							<li ng-repeat="list in vm.lists" ng-class="{ active: list == vm.currentList }"><a href ng-click="vm.selectList(list)">{{ list.name }}</a></li>
+						</ul>
+					</div>
+					<div class="form-group">
+						<button class="btn btn-default" ng-click="vm.newList()">New Wishlist</button>
+						<button class="btn btn-default" ng-click="vm.deleteList()">Delete Wishlist</button>
+					</div>
+				</div>
+			</div>
+			<div id="itemPanel" class="col-md-9 panel panel-default">
+				<div class="panel-body">
+					<div class="form-group text-right">
+						<button class="btn btn-default" ng-click="vm.newItem()">Add A Wishlist Item</button>
+					</div>
+					<ul ui-sortable="vm.sortableOptions" ng-model="vm.currentList.items" class="list-group">
+						<li ng-repeat="item in vm.currentList.items" class="list-group-item">
+							<div class="row vertical-align" ng-if="item.deleted">
+								<div class="col-md-12 text-center">
+									<a ng-href="{{ item.url }}" target="_blank">{{ item.name }}</a> has been deleted &nbsp; <button type="button" class="btn btn-default" ng-click="vm.undeleteItem(item)">Undo</button>
+								</div>
+							</div>
+							<div class="row" ng-if="!item.deleted">
+								<div class="col-md-3">
+									<div class="row vertical-align">
+										<div class="col-md-3">
+											<h2><span class="glyphicon glyphicon-menu-hamburger dragHandle"></span></h2>
+										</div>
+										<div class="col-md-9">
+											<img ng-src="{{ item.image }}" width="135"></img>
+										</div>
+									</div>
+								</div>
+								<div class="col-md-7">
+									<div class="row">
+										<div class="col-md-12"><h4 class="itemName"><a ng-href="{{ item.url }}" target="_blank">{{ item.name }}</a></h4></div>
+									</div>
+									<div class="row">
+										<div class="col-md-12"><small><a ng-href="{{ item.url }}" target="_blank">{{ item.website }}</a></small></div>
+									</div>
+									<div class="row">
+										<div class="col-md-12"><h4 class="itemPrice">{{ item.price }}</h4></div>
+									</div>
+									<div class="row">
+										<div class="col-md-12">
+											<textarea class="form-control" ng-model="item.comments" ng-model-options="{ debounce: 1000 }" ng-change="vm.saveLists()"></textarea>
+										</div>
+									</div>
+								</div>
+								<div class="col-md-2 itemButtonCol">
+									<button class="btn btn-default btn-block btn-sm" ng-click="vm.editItem(item)">Edit</button>
+									<button class="btn btn-default btn-block btn-sm" ng-click="vm.deleteItem(item)">Delete</button>
+									<div class="dropdown btn-block">
+										<button type="button" class="btn btn-default btn-sm btn-block dropdown-toggle" data-toggle="dropdown">
+											Move <span class="caret"></span>
+										</button>
+										<ul class="dropdown-menu">
+											<li ng-repeat="list in vm.lists | filter:{ name: '!' + vm.currentList.name }:true"><a href ng-click="vm.moveItem(item, list)">{{ list.name }}</a></li>
+										</ul>
+									</div>
+								</div>
+							</div>
+						</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<div id="itemModal" class="modal fade" tabindex="-1" role="dialog">
+		<div class="modal-dialog modal-lg" role="document">
+			<form name="itemForm" novalidate>
+				<div class="modal-content" ng-if="vm.dialogModel">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close" ng-click="vm.cancelItem()"><span aria-hidden="true">&times;</span></button>
+						<h4 class="modal-title">{{ vm.dialogModel.action }} Item</h4>
+					</div>
+					<div class="modal-body">
+						<div class="row">
+							<div class="col-md-3">
+								<div class="row">
+									<div class="col-md-12 text-center">
+										<img ng-src="{{ vm.dialogModel.image || 'placeholder.png' }}" width="135"></img>
+									</div>
+								</div>
+								<div class="row" ng-if="vm.dialogModel.images">
+									<div class="col-md-1 col-md-offset-3">
+										<a href ng-click="vm.dialogModel.imageIndex = vm.dialogModel.imageIndex == 0 ? vm.dialogModel.images.length - 1 : vm.dialogModel.imageIndex - 1"><span class="glyphicon glyphicon-circle-arrow-left"></span></a>
+									</div>
+									<div class="col-md-4 text-center">
+										{{ vm.dialogModel.imageIndex + 1 }} of {{ vm.dialogModel.images.length }}
+									</div>
+									<div class="col-md-1 text-right">
+										<a href ng-click="vm.dialogModel.imageIndex = vm.dialogModel.imageIndex >= vm.dialogModel.images.length - 1 ? 0 : vm.dialogModel.imageIndex + 1"><span class="glyphicon glyphicon-circle-arrow-right"></span></a>
+									</div>
+								</div>
+							</div>
+							<div class="col-md-9">
+								<div class="form-horizontal">
+									<div class="form-group" ng-class="{ 'has-error': vm.dialogModel.submitted && itemForm.item_name.$invalid }">
+										<label for="item_name" class="control-label col-md-2">Name:</label>
+										<div class="col-md-10">
+											<input id="item_name" name="item_name" type="text" class="form-control" ng-model="vm.dialogModel.name" required />
+											<p ng-show="vm.dialogModel.submitted && itemForm.item_name.$error.required" class="help-block">Name is required</p>
+										</div>
+	          						</div>
+									<div class="form-group" ng-class="{ 'has-error': vm.dialogModel.submitted && itemForm.item_url.$invalid }">
+										<label for="item_url" class="control-label col-md-2">URL:</label>
+										<div class="col-md-10">
+											<input id="item_url" name="item_url" type="url" class="form-control" ng-model="vm.dialogModel.url" required />
+											<p ng-show="vm.dialogModel.submitted && itemForm.item_url.$error.required" class="help-block">URL is required</p>
+											<p ng-show="vm.dialogModel.submitted && itemForm.item_url.$error.url" class="help-block">Invalid URL</p>
+										</div>
+	          						</div>
+									<div class="form-group">
+										<label for="item_price" class="control-label col-md-2">Price:</label>
+										<div class="col-md-10">
+											<input id="item_price" type="text" class="form-control" ng-model="vm.dialogModel.price" />
+										</div>
+									</div>
+									<div class="form-group" ng-class="{ 'has-error': vm.dialogModel.submitted && itemForm.item_image.$invalid }">
+										<label for="item_image" class="control-label col-md-2">Image URL:</label>
+										<div class="col-md-10">
+											<input id="item_image" name="item_image" type="url" class="form-control" ng-model="vm.dialogModel.image" ng-model-options="{ debounce: 1000 }" />
+											<p ng-show="vm.dialogModel.submitted && itemForm.item_image.$error.url" class="help-block">Invalid URL</p>
+										</div>
+									</div>
+									<div class="form-group">
+										<label for="item_comments" class="control-label col-md-2">Comments:</label>
+										<div class="col-md-10">
+											<textarea id="item_comments" class="form-control" ng-model="vm.dialogModel.comments"></textarea>
+										</div>
+									</div>
+									<div class="form-group" ng-if="vm.dialogModel.images">
+										<label for="item_wishlist" class="control-label col-md-2">Wish List:</label>
+										<div class="col-md-10">
+											<select id="item_wishlist" class="form-control" ng-model="vm.dialogModel.wishlist" ng-options="list.name for list in vm.lists"></select> 
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-default" data-dismiss="modal" ng-click="vm.cancelItem()">Cancel</button>
+						<button type="button" class="btn btn-primary" ng-click="vm.dialogModel.submitted = true; itemForm.$valid && vm.commitItem()">Save</button>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+	
+</body>
+
+</html>
