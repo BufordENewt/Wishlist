@@ -6,9 +6,9 @@
 	
 	angular.module("wishlist").controller("WishlistController", WishlistController);
 	
-	WishlistController.$inject = ["$filter", "$window"];
+	WishlistController.$inject = ["$filter", "$window", "$location"];
 	
-	function WishlistController($filter, $window)
+	function WishlistController($filter, $window, $location)
 	{
 		var vm = this;
 		vm.lists = undefined;
@@ -112,6 +112,8 @@
 				show: false,
 				backdrop: "static"
 			});
+			var addParams = $location.search();
+			console.log(angular.toJson(addParams));
 		}
 		
 		function loadLists()
